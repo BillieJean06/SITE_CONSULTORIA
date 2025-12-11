@@ -7,11 +7,11 @@
   {
     "codigo": "MULHER10",
     "desconto": 10,
-    "ativo": false
+    "ativo": true
   },
   {
-    "codigo": "WELCOME5",
-    "desconto": 5,
+    "codigo": "WELCOME50",
+    "desconto": 50,
     "ativo": true
   }
 ]

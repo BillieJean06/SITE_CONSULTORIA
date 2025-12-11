@@ -30,7 +30,7 @@
     <section class="cta">
       <h2>Pronto para começar a transformação?</h2>
       <p>Entre em contato e descubra o plano ideal para você.</p>
-      <button @click="goToContato">Fale com o Personal</button>
+      <button @click="goToContato">Fale com os nossos atendentes</button>
     </section>
   </div>
 </template>

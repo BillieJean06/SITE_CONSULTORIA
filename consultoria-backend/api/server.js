@@ -3,7 +3,7 @@ const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
 const nodemailer = require("nodemailer");
-const PDFDocument = require("pdfkit"); 
+const PDFDocument = require("pdfkit");
 
 const app = express();
 const PORT = 3000;
@@ -45,7 +45,7 @@ function gerarPdfBuffer({ nome, email, telefone, pedido, total }) {
 
     doc
       .fontSize(20)
-      .text("Resumo do Pedido - Consultoria JP", { align: "center" });
+      .text("Resumo do Pedido - PALMIFILHOS", { align: "center" });
     doc.moveDown();
     doc.fontSize(14).text(`Nome: ${nome}`);
     doc.text(`Email: ${email}`);
@@ -104,7 +104,7 @@ ${corpoPedido}
 Entraremos em contato em breve!
 
 Atenciosamente,
-Consultoria JP
+PALMIFILHOS
 `;
 
   try {
@@ -119,10 +119,10 @@ Consultoria JP
 
     // Enviar e-mail com anexo
     await transporter.sendMail({
-      from: `"Consultoria JP" <${process.env.SMTP_USER}>`,
+      from: `"PALMIFILHOS" <${process.env.SMTP_USER}>`,
       to: email,
       cc: emailDoJP,
-      subject: "Confirmação do seu pedido - Consultoria JP",
+      subject: "Confirmação do seu pedido - PALMIFILHOS",
       text: corpoEmail,
       attachments: [
         {

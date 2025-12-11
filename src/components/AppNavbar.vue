@@ -2,7 +2,7 @@
   <nav class="navbar">
     <div class="nav-container">
       <div class="logo">
-        <router-link to="/">CONSULTORIAS JP</router-link>
+        <router-link to="/">PALMIFILHOS</router-link>
       </div>
 
       <!-- Botão Hamburguer -->
@@ -15,7 +15,7 @@
         <li><router-link to="/" @click="closeMenu">Home</router-link></li>
         <li><router-link to="/sobre" @click="closeMenu">Sobre</router-link></li>
         <li>
-          <router-link to="/servicos" @click="closeMenu">Serviços</router-link>
+          <router-link to="/servicos" @click="closeMenu">Produtos</router-link>
         </li>
         <li>
           <router-link to="/depoimentos" @click="closeMenu"
@@ -51,10 +51,10 @@ export default {
 
 <style scoped>
 .navbar {
-  background: #1a53d99d; /* fundo fosco */
+  background: #034e33e1; /* fundo fosco */
   backdrop-filter: blur(8px); /* efeito blur */
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  color: #1a54d9;
+  color: #dd8615;
   padding: 14px 20px;
   position: sticky;
   top: 0;
@@ -71,7 +71,7 @@ export default {
 }
 
 .logo a {
-  color: #ffffff;
+  color: #dd8615;
   font-size: 1.5rem;
   font-weight: bold;
   text-decoration: none;
@@ -94,14 +94,14 @@ export default {
 }
 
 .nav-links li a {
-  color: white;
+  color: #dd8615;
   text-decoration: none;
   font-weight: 500;
   transition: color 0.3s ease;
 }
 
 .nav-links li a:hover {
-  color: #5e88eb;
+  color: #dd8615;
 }
 
 /* Mobile */

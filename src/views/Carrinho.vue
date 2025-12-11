@@ -1,292 +1,233 @@
 <template>
-  <div class="carrinho-page">
-    <h1>Resumo do Pedido</h1>
+  <v-container>
+    <v-row>
+      <v-col cols="12" md="7">
+        <v-card class="pa-4">
+          <h2>Dados do Cliente</h2>
 
-    <form @submit.prevent="enviar" novalidate>
-      <div class="form-group" :class="{ erro: erros.nome }">
-        <label for="nome">Nome completo:</label>
-        <input
-          id="nome"
-          v-model.trim="nome"
-          required
-          placeholder="Digite seu nome completo"
-          @blur="validarNome"
-          aria-describedby="erro-nome"
-          :aria-invalid="!!erros.nome"
-        />
-        <small v-if="erros.nome" id="erro-nome" class="msg-erro">{{
-          erros.nome
-        }}</small>
-      </div>
+          <v-text-field
+            label="Nome"
+            v-model="nome"
+            :rules="[rules.nome]"
+            @input="onChange"
+            outlined
+            dense
+          />
+          <v-text-field
+            label="Email"
+            v-model="email"
+            :rules="[rules.email]"
+            @input="onChange"
+            outlined
+            dense
+          />
+          <v-text-field
+            label="Telefone"
+            v-model="telefone"
+            v-mask="masks.telefone"
+            :rules="[rules.telefone]"
+            @input="onChange"
+            outlined
+            dense
+          />
 
-      <div class="form-group" :class="{ erro: erros.email }">
-        <label for="email">E-mail:</label>
-        <input
-          id="email"
-          v-model.trim="email"
-          type="email"
-          required
-          placeholder="Digite seu e-mail"
-          @blur="validarEmail"
-          aria-describedby="erro-email"
-          :aria-invalid="!!erros.email"
-        />
-        <small v-if="erros.email" id="erro-email" class="msg-erro">{{
-          erros.email
-        }}</small>
-      </div>
+          <endereco-form v-model="enderecoObj" @input="onEnderecoChange" />
+          <v-switch v-model="mostrarMapa" label="Mostrar mapa" />
 
-      <div class="form-group" :class="{ erro: erros.telefone }">
-        <label for="telefone">Telefone:</label>
-        <input
-          id="telefone"
-          v-model.trim="telefone"
-          type="tel"
-          required
-          placeholder="Digite seu telefone (somente números)"
-          @blur="validarTelefone"
-          aria-describedby="erro-telefone"
-          :aria-invalid="!!erros.telefone"
-        />
-        <small v-if="erros.telefone" id="erro-telefone" class="msg-erro">{{
-          erros.telefone
-        }}</small>
-      </div>
-
-      <ul v-if="carrinho.length" class="carrinho-lista">
-        <li v-for="item in carrinho" :key="item.servico.id">
-          <div class="titulo">{{ item.servico.titulo }}</div>
-          <div>Qtd: {{ item.quantidade }}</div>
-          <div>
-            Subtotal: R$ {{ subtotalItem(item).toFixed(2).replace(".", ",") }}
+          <div v-if="mostrarMapa" class="mt-4">
+            <mapa-endereco :query="enderecoObjFull" mapId="map-carrinho" />
           </div>
-        </li>
-      </ul>
 
-      <div v-if="carrinho.length" class="resumo">
-        <p>Subtotal: R$ {{ subtotalCarrinho.toFixed(2).replace(".", ",") }}</p>
-        <p v-if="cupomValido" class="desconto">
-          Desconto (JP15): -R$ {{ descontoValor.toFixed(2).replace(".", ",") }}
-        </p>
-        <p class="total">
-          Total: R$ {{ totalFinal.toFixed(2).replace(".", ",") }}
-        </p>
+          <v-row class="mt-4">
+            <v-col>
+              <v-btn
+                color="primary"
+                :loading="enviando"
+                :disabled="!formValido"
+                @click="enviarPedido"
+                >Finalizar Pedido</v-btn
+              >
+            </v-col>
 
-        <div class="acoes">
-          <button type="submit" :disabled="enviando || !formValido">
-            {{ enviando ? "Enviando..." : "Finalizar Pedido" }}
-          </button>
-          <button type="button" @click="gerarPDF" :disabled="!carrinho.length">
-            Gerar PDF
-          </button>
-        </div>
-      </div>
+            <v-col>
+              <v-btn
+                color="green"
+                @click="baixarPdf"
+                :disabled="!carrinho.length"
+                >Gerar PDF</v-btn
+              >
+            </v-col>
+          </v-row>
+        </v-card>
+      </v-col>
 
-      <p v-else>Seu carrinho está vazio.</p>
-    </form>
-  </div>
+      <v-col cols="12" md="5">
+        <v-card class="pa-4">
+          <h2>Resumo do Pedido</h2>
+          <v-list two-line>
+            <carrinho-item
+              v-for="it in carrinho"
+              :key="it.servico.id"
+              :item="it"
+              @remover="removerItem"
+            />
+          </v-list>
+
+          <v-divider class="my-3" />
+          <div class="text-right">
+            <strong>Total: R$ {{ total.toFixed(2) }}</strong>
+          </div>
+        </v-card>
+      </v-col>
+    </v-row>
+  </v-container>
 </template>
 
 <script>
-import jsPDF from "jspdf";
-import logo from "@/assets/logo2.png";
+import EnderecoForm from "@/components/EnderecoForm.vue";
+import MapaEndereco from "@/components/MapaEndereco.vue";
+import CarrinhoItem from "@/components/CarrinhoItem.vue";
+import { masks } from "@/utils/masks";
+import { validarEmail, validarNome, validarTelefone } from "@/utils/validators";
+import { salvarState, carregarState } from "@/utils/localStorage";
+import { gerarPdfPedido } from "@/utils/pdfGenerator";
+import { enviarPedido } from "@/api/pedidoService";
 
 export default {
-  name: "CarrinhoPage",
+  name: "CarrinhoView",
+  components: { EnderecoForm, MapaEndereco, CarrinhoItem },
   data() {
     return {
-      carrinho: JSON.parse(localStorage.getItem("carrinho") || "[]"),
-      descontoPercentual: 15,
-      cupomValido: JSON.parse(localStorage.getItem("cupomValido") || "false"),
-      whatsappNumber: process.env.VUE_APP_WHATSAPP_NUMBER || "55987654321", // Número vindo do .env
       nome: "",
       email: "",
       telefone: "",
-      erros: {
-        nome: null,
-        email: null,
-        telefone: null,
-      },
+      enderecoObj: { cep: "", endereco: "", numero: "", complemento: "" },
+      mostrarMapa: false,
+      carrinho: JSON.parse(localStorage.getItem("carrinho") || "[]"),
       enviando: false,
+      masks,
     };
   },
   computed: {
-    subtotalCarrinho() {
-      return this.carrinho.reduce((acc, item) => {
-        return (
-          acc + this.precoComDesconto(item.servico.preco) * item.quantidade
-        );
-      }, 0);
+    total() {
+      return this.carrinho.reduce(
+        (s, i) => s + i.servico.preco * i.quantidade,
+        0
+      );
     },
-    descontoValor() {
-      if (!this.cupomValido) return 0;
-      return (this.subtotalCarrinho * this.descontoPercentual) / 100;
-    },
-    totalFinal() {
-      return this.subtotalCarrinho - this.descontoValor;
+    enderecoObjFull() {
+      return `${this.enderecoObj.endereco} ${this.enderecoObj.numero}`.trim();
     },
     formValido() {
       return (
-        !this.erros.nome &&
-        !this.erros.email &&
-        !this.erros.telefone &&
-        this.nome &&
-        this.email &&
-        this.telefone
+        !validarNome(this.nome) &&
+        !validarEmail(this.email) &&
+        !validarTelefone(this.telefone) &&
+        this.carrinho.length > 0
       );
     },
+    rules() {
+      return {
+        nome: (v) => (v && v.length >= 3) || "Nome inválido",
+        email: (v) => !validarEmail(v) || "E-mail inválido",
+        telefone: (v) => !validarTelefone(v) || "Telefone inválido",
+      };
+    },
+  },
+  watch: {
+    nome() {
+      this.salvar();
+    },
+    email() {
+      this.salvar();
+    },
+    telefone() {
+      this.salvar();
+    },
+    enderecoObj: {
+      handler() {
+        this.salvar();
+      },
+      deep: true,
+    },
+    carrinho: {
+      handler() {
+        localStorage.setItem("carrinho", JSON.stringify(this.carrinho));
+      },
+      deep: true,
+    },
+  },
+  mounted() {
+    const st = carregarState();
+    if (st) {
+      this.nome = st.nome || this.nome;
+      this.email = st.email || this.email;
+      this.telefone = st.telefone || this.telefone;
+      if (st.enderecoObj) this.enderecoObj = st.enderecoObj;
+    }
   },
   methods: {
-    precoComDesconto(preco) {
-      return this.cupomValido
-        ? preco * (1 - this.descontoPercentual / 100)
-        : preco;
+    onChange() {
+      this.salvar();
     },
-    subtotalItem(item) {
-      return this.precoComDesconto(item.servico.preco) * item.quantidade;
+    onEnderecoChange(obj) {
+      this.enderecoObj = obj;
     },
-    gerarPDF() {
-      if (!this.carrinho.length) {
-        alert("Seu carrinho está vazio.");
-        return;
-      }
-
-      const doc = new jsPDF();
-
-      const img = new Image();
-      img.src = logo;
-      img.onload = () => {
-        doc.addImage(img, "PNG", 10, 10, 50, 20);
-        doc.setFontSize(16);
-        doc.text("Resumo do Pedido - Consultoria JP", 20, 40);
-        doc.setFontSize(12);
-
-        this.carrinho.forEach((item, i) => {
-          doc.text(
-            `${i + 1}. ${item.servico.titulo} - x${
-              item.quantidade
-            } - R$ ${this.subtotalItem(item).toFixed(2)}`,
-            20,
-            50 + i * 10
-          );
-        });
-
-        doc.text(
-          `Total: R$ ${this.totalFinal.toFixed(2)}`,
-          20,
-          60 + this.carrinho.length * 10
-        );
-
-        doc.save("resumo-pedido.pdf");
-      };
-
-      img.onerror = () => {
-        alert("Erro ao carregar a imagem do logo para o PDF.");
-      };
+    salvar() {
+      salvarState({
+        nome: this.nome,
+        email: this.email,
+        telefone: this.telefone,
+        enderecoObj: this.enderecoObj,
+      });
     },
-    validarNome() {
-      if (!this.nome) {
-        this.erros.nome = "O nome é obrigatório.";
-      } else if (this.nome.length < 3) {
-        this.erros.nome = "O nome deve ter ao menos 3 caracteres.";
-      } else {
-        this.erros.nome = null;
-      }
+    removerItem(id) {
+      this.carrinho = this.carrinho.filter((x) => x.servico.id !== id);
     },
-    validarEmail() {
-      const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!this.email) {
-        this.erros.email = "O e-mail é obrigatório.";
-      } else if (!regex.test(this.email)) {
-        this.erros.email = "Digite um e-mail válido.";
-      } else {
-        this.erros.email = null;
-      }
-    },
-    validarTelefone() {
-      const regex = /^\d{10,15}$/; // aceita somente números, de 10 a 15 dígitos
-      const tel = this.telefone.replace(/\D/g, ""); // remove tudo que não for número
-      if (!this.telefone) {
-        this.erros.telefone = "O telefone é obrigatório.";
-      } else if (!regex.test(tel)) {
-        this.erros.telefone =
-          "Digite um telefone válido com DDD, somente números.";
-      } else {
-        this.erros.telefone = null;
-      }
-    },
-    abrirWhatsApp(mensagem, numero) {
-      // número sem espaços, somente dígitos e código do país (ex: 5511999999999)
-      const telefoneFormatado = numero.replace(/\D/g, "");
-      const url = `https://wa.me/${telefoneFormatado}?text=${encodeURIComponent(
-        mensagem
-      )}`;
-      window.open(url, "_blank");
-    },
-    async enviar() {
-      // Valida antes de enviar
-      this.validarNome();
-      this.validarEmail();
-      this.validarTelefone();
-
-      if (!this.formValido) {
-        alert("Por favor, corrija os erros no formulário antes de enviar.");
-        return;
-      }
-
-      if (!this.carrinho.length) {
-        alert("Seu carrinho está vazio.");
-        return;
-      }
-
-      const pedido = this.carrinho.map((item) => ({
-        nome: item.servico.titulo,
-        preco: this.subtotalItem(item),
-        quantidade: item.quantidade,
-      }));
-
-      this.enviando = true;
-
+    async baixarPdf() {
       try {
-        const res = await fetch("http://localhost:3000/api/enviar-pedido", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
+        await gerarPdfPedido({
+          cliente: {
             nome: this.nome,
             email: this.email,
             telefone: this.telefone,
-            pedido,
-            total: this.totalFinal,
-          }),
+            endereco: `${this.enderecoObj.endereco}, ${this.enderecoObj.numero}`,
+          },
+          carrinho: this.carrinho,
+          total: this.total,
         });
-
-        const data = await res.json();
-        if (data.status === "sucesso") {
-          alert("Pedido enviado com sucesso! Verifique seu e-mail.");
-
-          // Montar mensagem para WhatsApp
-          const mensagem = `Olá ${
-            this.nome
-          }, obrigado pelo seu pedido!\nTotal: R$ ${this.totalFinal.toFixed(
-            2
-          )}\nEm breve entraremos em contato pelo telefone ${this.telefone}.`;
-
-          // Abrir WhatsApp Web para o cliente usando o número do .env
-          this.abrirWhatsApp(mensagem, this.whatsappNumber);
-
-          // Limpar tudo
+      } catch (e) {
+        console.error(e);
+        alert("Erro ao gerar PDF");
+      }
+    },
+    async enviarPedido() {
+      if (!this.formValido) return alert("Preencha os dados corretamente.");
+      this.enviando = true;
+      try {
+        const payload = {
+          nome: this.nome,
+          email: this.email,
+          telefone: this.telefone,
+          endereco: `${this.enderecoObj.endereco}, ${this.enderecoObj.numero}`,
+          pedido: this.carrinho.map((i) => ({
+            nome: i.servico.titulo,
+            preco: i.servico.preco,
+            quantidade: i.quantidade,
+          })),
+          total: this.total,
+        };
+        const res = await enviarPedido(payload);
+        if (res.status === "sucesso" || res.ok) {
+          alert("Pedido enviado com sucesso");
           this.carrinho = [];
           localStorage.removeItem("carrinho");
-          localStorage.removeItem("cupomValido");
-          this.nome = "";
-          this.email = "";
-          this.telefone = "";
         } else {
-          alert("Erro ao enviar pedido: " + data.mensagem);
+          alert("Erro ao enviar pedido");
         }
-      } catch (err) {
-        console.error(err);
-        alert("Erro ao enviar pedido, tente novamente.");
+      } catch (e) {
+        console.error(e);
+        alert("Erro ao enviar pedido");
       } finally {
         this.enviando = false;
       }
@@ -296,114 +237,18 @@ export default {
 </script>
 
 <style scoped>
-.carrinho-page {
-  max-width: 700px;
-  margin: 0 auto;
-  padding: 20px;
-  font-family: "Segoe UI", sans-serif;
-  color: #333;
-}
-
-h1 {
-  text-align: center;
-  color: #2575fc;
-  margin-bottom: 20px;
-}
-
-.form-group {
-  margin-bottom: 15px;
-  display: flex;
-  flex-direction: column;
-}
-
-input {
-  width: 100%;
+/* adicione estilos simples para cards/form */
+.form-box {
   padding: 12px;
-  border: 1px solid #ccc;
+  margin-bottom: 12px;
   border-radius: 8px;
-  font-size: 1rem;
-  box-sizing: border-box;
-  transition: border-color 0.3s ease;
+  background: #fff;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.03);
 }
-
-input:focus {
-  border-color: #2575fc;
-  outline: none;
-}
-
-.form-group.erro input {
-  border-color: #e91e63;
-}
-
-.msg-erro {
-  color: #e91e63;
-  font-size: 0.875rem;
-  margin-top: 5px;
-}
-
-.carrinho-lista {
-  margin: 20px 0;
-  padding: 0;
-  list-style: none;
-}
-
-.carrinho-lista li {
-  background: #f4f8ff;
-  border-radius: 10px;
-  padding: 15px;
-  margin-bottom: 10px;
-}
-
-.titulo {
-  font-weight: bold;
-  color: #1a54d9;
-}
-
-.resumo {
-  margin-top: 20px;
-}
-
-.desconto {
-  color: #e91e63;
-}
-
-.total {
-  font-weight: bold;
-  font-size: 1.2rem;
-  margin-top: 10px;
-}
-
-.acoes {
+.item-linha {
   display: flex;
-  gap: 10px;
-  margin-top: 15px;
-}
-
-button {
-  flex: 1;
-  padding: 14px;
-  background-color: #2575fc;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-  user-select: none;
-}
-
-button:disabled {
-  background-color: #a0b4ff;
-  cursor: not-allowed;
-}
-
-button:hover:not(:disabled) {
-  background-color: #1a54d9;
-}
-
-@media (max-width: 600px) {
-  .acoes {
-    flex-direction: column;
-  }
+  justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px dashed #eee;
 }
 </style>

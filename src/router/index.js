@@ -1,6 +1,7 @@
 import Vue from "vue";
 import Router from "vue-router";
 
+
 import Home from "../views/Home.vue";
 import Sobre from "../views/Sobre.vue";
 import Servicos from "../views/Servicos.vue";

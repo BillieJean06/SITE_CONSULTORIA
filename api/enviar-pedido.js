@@ -33,7 +33,7 @@ export default async function handler(req, res) {
       doc.on("data", buffers.push.bind(buffers));
       doc.on("end", () => resolve(Buffer.concat(buffers)));
 
-      doc.fontSize(20).text("Resumo do Pedido - Consultoria JP", { align: "center" });
+      doc.fontSize(20).text("Resumo do Pedido - PALMIFILHOS", { align: "center" });
       doc.moveDown();
       doc.fontSize(14).text(`Nome: ${nome}`);
       doc.text(`Email: ${email}`);
@@ -77,14 +77,14 @@ ${corpoPedido}
 Entraremos em contato em breve!
 
 Atenciosamente,
-Consultoria JP
+PALMIFILHOS
 `;
 
     await transporter.sendMail({
-      from: `"Consultoria JP" <${process.env.SMTP_USER}>`,
+      from: `"PALMIFILHOS" <${process.env.SMTP_USER}>`,
       to: email,
       cc: emailDoJP,
-      subject: "Confirmação do seu pedido - Consultoria JP",
+      subject: "Confirmação do seu pedido - PALMIFILHOS",
       text: corpoEmail,
       attachments: [
         {

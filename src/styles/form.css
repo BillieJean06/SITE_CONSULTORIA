@@ -1,0 +1,5 @@
+/* básico para inputs não Vuetify (caso usar) */
+.form-row {
+   display:flex; 
+   gap:12px; 
+  }

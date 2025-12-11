@@ -1,6 +1,6 @@
 <template>
   <div class="servicos-page">
-    <h1>Nossos Serviços</h1>
+    <h1>Nossos Produtos</h1>
 
     <div class="cupom-container">
       <label for="cupom">Tem cupom de desconto?</label>
@@ -27,16 +27,19 @@
         @touchstart="toggleTouch($event)"
         @touchend="toggleTouch($event)"
       >
+        <!-- IMAGEM -->
+        <img :src="servico.imagem" :alt="servico.titulo" class="card-img" />
+
         <h2>{{ servico.titulo }}</h2>
         <p>{{ servico.descricao }}</p>
 
         <div class="precos">
           <span class="preco-original" v-if="cupomValido && servico.ativo">
-            R$ {{ servico.preco.toFixed(2).replace('.', ',') }}
+            R$ {{ servico.preco.toFixed(2).replace(".", ",") }}
           </span>
           <span class="preco-final">
             R$
-            {{ precoComDesconto(servico.preco).toFixed(2).replace('.', ',') }}
+            {{ precoComDesconto(servico.preco).toFixed(2).replace(".", ",") }}
           </span>
         </div>
 
@@ -45,9 +48,7 @@
             Adicionar ao carrinho
           </button>
         </div>
-        <div v-else class="esgotado-msg">
-          Esgotado
-        </div>
+        <div v-else class="esgotado-msg">Esgotado</div>
       </div>
     </div>
   </div>
@@ -61,31 +62,27 @@ export default {
       servicos: [
         {
           id: 1,
-          titulo: "Consultoria Personalizada",
+          titulo: "Palmito Palmeira Pupunha - Pommer",
           descricao: "Planos de treino sob medida...",
-          preco: 299.9,
+          preco: 19.9,
           ativo: true,
+          imagem: "/imgs//palmpupunha.png",
         },
         {
           id: 2,
-          titulo: "Treinamento para Mulheres",
+          titulo: "Palmito Palmeira Real - Pommer",
           descricao: "Foco especial em saúde hormonal...",
-          preco: 249.9,
+          preco: 27.9,
           ativo: true,
+          imagem: "/imgs/palmreal.png",
         },
         {
           id: 3,
-          titulo: "Acompanhamento Online",
+          titulo: "Palmito Palmeira Juçara - Pommer",
           descricao: "Treinos e orientações remotamente...",
-          preco: 199.9,
+          preco: 34.9,
           ativo: false,
-        },
-        {
-          id: 4,
-          titulo: "Avaliação Física Completa",
-          descricao: "Avaliação detalhada para entender seu corpo...",
-          preco: 149.9,
-          ativo: true,
+          imagem: "/imgs//palmjucara.png",
         },
       ],
       cupomInput: "",
@@ -134,9 +131,12 @@ export default {
 
       let carrinho = JSON.parse(localStorage.getItem("carrinho") || "[]");
       const itemExistente = carrinho.find((i) => i.servico.id === servico.id);
-      itemExistente
-        ? itemExistente.quantidade++
-        : carrinho.push({ servico, quantidade: 1 });
+
+      if (itemExistente) {
+        itemExistente.quantidade++;
+      } else {
+        carrinho.push({ servico, quantidade: 1 });
+      }
 
       localStorage.setItem("carrinho", JSON.stringify(carrinho));
       localStorage.setItem("cupomValido", JSON.stringify(this.cupomValido));
@@ -160,7 +160,7 @@ export default {
   color: #333;
 }
 h1 {
-  color: #2575fc;
+  color: #034e32d8;
   margin-bottom: 30px;
   text-align: center;
 }
@@ -175,19 +175,19 @@ h1 {
   font-weight: 600;
   display: block;
   margin-bottom: 8px;
-  color: #2575fc;
+  color: #034e32d8;
 }
 .cupom-container input {
   width: 100%;
   padding: 10px 12px;
   font-size: 16px;
-  border: 2px solid #2575fc;
+  border: 2px solid #034e32d8;
   border-radius: 8px;
   outline: none;
   transition: border-color 0.3s ease;
 }
 .cupom-container input:focus {
-  border-color: #1a54d9;
+  border-color: #034e32d8;
 }
 .valid-cupom {
   color: green;
@@ -208,11 +208,12 @@ h1 {
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 20px;
 }
+
 .card {
   background: white;
   border-radius: 15px;
-  border: 2px solid #1a54d9; /* azul padrão */
-  box-shadow: 0 3px 6px #1a54d9;
+  border: 2px solid #034e32d8;
+  box-shadow: 0 3px 6px #034e32d8;
   padding: 25px 20px;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   cursor: pointer;
@@ -221,13 +222,23 @@ h1 {
   flex-direction: column;
   justify-content: space-between;
 }
+
+/* Foto do card */
+.card-img {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+  border-radius: 12px;
+  margin-bottom: 15px;
+}
+
 .card:hover,
 .card.touch-active {
   transform: scale(1.05);
-  box-shadow: 0 10px 20px #1a54d9;
+  box-shadow: 0 10px 20px #034e32d8;
 }
 
-/* ❗ Estilo para cards inativos (esgotados) */
+/* Inativos */
 .card.inativo {
   border: 2px solid #ff1900;
   box-shadow: 0 3px 6px #ff1900;
@@ -236,7 +247,7 @@ h1 {
 }
 
 .card h2 {
-  color: #2575fc;
+  color: #034e32d8;
   margin-bottom: 15px;
 }
 .card p {
@@ -244,6 +255,7 @@ h1 {
   line-height: 1.5;
   flex-grow: 1;
 }
+
 .precos {
   margin-top: 15px;
   font-weight: 700;
@@ -252,17 +264,19 @@ h1 {
   gap: 12px;
   align-items: center;
 }
+
 .preco-original {
   color: #999;
   text-decoration: line-through;
   font-weight: 600;
 }
 .preco-final {
-  color: #2575fc;
+  color: #034e32d8;
 }
+
 button {
   margin-top: 20px;
-  background-color: #2575fc;
+  background-color: #dd8615d8;
   color: white;
   border: none;
   border-radius: 8px;
@@ -272,10 +286,9 @@ button {
   transition: background-color 0.3s ease;
 }
 button:hover {
-  background-color: #1a54d9;
+  background-color: #dd8615;
 }
 
-/* Esgotado */
 .esgotado-msg {
   margin-top: 20px;
   color: #ff1900;

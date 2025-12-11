@@ -41,14 +41,14 @@ ${pedidoTexto}
 Total: R$ ${total.toFixed(2)}
 Telefone para contato: ${telefone}
 
-Obrigado por escolher a Consultoria JP!
+Obrigado por escolher a PALMIFILHOS!
   `;
 
   const mailOptions = {
-    from: `"Consultoria JP" <${process.env.SMTP_USER}>`,
+    from: `"PALMIFILHOS" <${process.env.SMTP_USER}>`,
     to: email,
     cc: process.env.SMTP_CC,
-    subject: "Confirmação do Pedido - Consultoria JP",
+    subject: "Confirmação do Pedido - PALMIFILHOS",
     text: emailBody,
   };
 
