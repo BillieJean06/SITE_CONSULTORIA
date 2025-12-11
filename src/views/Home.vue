@@ -17,7 +17,7 @@
       <ul>
         <li>Colheita sustentável e certificada</li>
         <li>Processamento livre de conservantes artificiais</li>
-        <li>Variedades: Pupunha, Açaí e Juçara</li>
+        <li>Variedades: Pupunha, Real e Juçara</li>
         <li>
           <strong>Entrega para todo o Brasil</strong>: embalagens seguras e frescor garantido
         </li>
@@ -37,7 +37,7 @@ export default {
   name: "HomePage",
   methods: {
     goToContato() {
-      this.$router.push("/contato");
+      this.$router.push("/servico");
     },
   },
 };
