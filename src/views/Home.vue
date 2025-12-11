@@ -1,36 +1,33 @@
 <template>
   <div class="home">
     <section class="hero">
-      <h1>Consultoria Fitness Personalizada</h1>
+      <h1>Palmito Natural de Alta Qualidade</h1>
       <p>
-        Transforme seu treino e alcance seus objetivos com acompanhamento
-        profissional.
+        Da plantação à sua mesa — palmito fresco, sustentável e com sabor incomparável.
       </p>
-      <button @click="goToContato">Agende sua avaliação</button>
+      <button @click="goToContato">Faça seu pedido</button>
     </section>
 
     <section class="services">
-      <h2>Para todos que querem evoluir na academia</h2>
+      <h2>Por que nosso palmito é diferente?</h2>
       <p>
-        Consultoria completa para homens e mulheres, com planos personalizados
-        para cada objetivo.
+        Produzimos palmito com rigoroso controle de qualidade e sustentabilidade.
       </p>
 
       <ul>
-        <li>Treinos personalizados para força, emagrecimento e saúde</li>
-        <li>Planos alimentares focados no seu estilo de vida</li>
-        <li>Acompanhamento contínuo para garantir resultados</li>
+        <li>Colheita sustentável e certificada</li>
+        <li>Processamento livre de conservantes artificiais</li>
+        <li>Variedades: Pupunha, Açaí e Juçara</li>
         <li>
-          <strong>Especial atenção para mulheres</strong>: programas dedicados
-          para condicionamento, saúde hormonal e bem-estar feminino
+          <strong>Entrega para todo o Brasil</strong>: embalagens seguras e frescor garantido
         </li>
       </ul>
     </section>
 
     <section class="cta">
-      <h2>Pronto para começar a transformação?</h2>
-      <p>Entre em contato e descubra o plano ideal para você.</p>
-      <button @click="goToContato">Fale com os nossos atendentes</button>
+      <h2>Quer experimentar nosso palmito?</h2>
+      <p>Entre em contato e faça uma cotação sem compromisso.</p>
+      <button @click="goToContato">Fale com nossa equipe</button>
     </section>
   </div>
 </template>
@@ -45,6 +42,7 @@ export default {
   },
 };
 </script>
+
 
 <style scoped>
 .home {
